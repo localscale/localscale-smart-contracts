@@ -31,6 +31,7 @@ namespace contracts {
   name dao = "dao.seeds"_n;
   name tokensmaster = "tokensmaster"_n;
   name rainbows = "rainbo.seeds"_n;
+  name oswaps = "oswaps.seeds"_n;
 }
 namespace bankaccts {
   name milestone = "milest.seeds"_n;

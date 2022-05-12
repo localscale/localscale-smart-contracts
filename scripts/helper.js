@@ -190,6 +190,7 @@ const accountsMetadata = (network) => {
       tokensmaster: contract('tmastr.seeds', 'tokensmaster'),
       rainbows: contract('rainbo.seeds','rainbows'),
       sale: contract('sale.hypha', 'sale'),
+      oswaps: contract('oswaps.seeds', 'oswaps'),
     }
   } else if (network == networks.telosMainnet) {
     return {
