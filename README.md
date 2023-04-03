@@ -1,3 +1,15 @@
+# Intro
+
+Localscale info at https://localscale.org/
+
+This repo contains the Locascale version of the "Rainbow Token" smart contract, cloned from https://github.com/chuck-h/seeds-smart-contracts
+
+This project originated as part of the SEEDS ecosystem https://joinseeds.earth/
+
+## Status
+
+This repo has just been ported over and is in the process of being cleaned up.
+
 # Contract Names
 
 See here: https://gitlab.com/seeds-project/seeds-contracts/issues/25
