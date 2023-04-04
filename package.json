@@ -1,6 +1,6 @@
 {
-  "name": "seeds-contracts",
-  "version": "1.2.0",
+  "name": "localscale-contracts",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
