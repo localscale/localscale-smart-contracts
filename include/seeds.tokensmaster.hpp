@@ -2,9 +2,9 @@
 #include <eosio/eosio.hpp>
 #include <eosio/crypto.hpp>
 #include <eosio/singleton.hpp>
-#include <contracts.hpp>
-#include <tables.hpp>
-#include <utils.hpp>
+//#include <contracts.hpp>
+//#include <tables.hpp>
+//#include <utils.hpp>
 
 using namespace eosio;
 using std::string;
@@ -247,4 +247,17 @@ CONTRACT tokensmaster : public contract {
 
 };
 
+namespace utils {
+  template <typename T>
+  inline void delete_table (const name & code, const uint64_t & scope) {
+
+    T table(code, scope);
+    auto itr = table.begin();
+
+    while (itr != table.end()) {
+      itr = table.erase(itr);
+    }
+
+  }
+}
 
