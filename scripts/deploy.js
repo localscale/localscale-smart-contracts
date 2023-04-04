@@ -601,9 +601,9 @@ const deployAllContracts = async () => {
     return
   }
 
-  await createAccount(accounts.token)
-  await deploy(accounts.token)
-  await createCoins(accounts.token)
+  //await createAccount(accounts.token)
+  //await deploy(accounts.token)
+  //await createCoins(accounts.token)
 
   if (accounts.testtoken) {
     await createCoins(accounts.testtoken)
@@ -624,19 +624,15 @@ const deployAllContracts = async () => {
     }
 
     if (account.quantity && Number.parseFloat(account.quantity) > 0) {
-      await transferCoins(accounts.token, account)
+      // await transferCoins(accounts.token, account)
     }
 
     await sleep(1000)
   }
 
-  if (isLocal()) {
-    await addActorPermission("cg.seeds", "active", "seedsuseraaa", "active")
-    await addActorPermission("cg.seeds", "active", "seedsuserbbb", "active")
-  }
   
-  await updatePermissions()
-  await reset(accounts.settings)
+  //await updatePermissions()
+  //await reset(accounts.settings)
 }
 
 module.exports = { 
