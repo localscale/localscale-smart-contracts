@@ -7,7 +7,6 @@ const { eos, isLocal, names, accounts, allContracts, allContractNames, allBankAc
 const docsgen = require('./docsgen')
 const { settings, scheduler } = names
 
-const {proposeDeploy, proposeChangeGuardians, setCGPermissions, proposeKeyPermissions, issueHypha, sendHypha } = require('./propose_deploy')
 const deploy = require('./deploy.command')
 const { deployAllContracts, updatePermissions, resetByName, 
     changeOwnerAndActivePermission, 
@@ -75,11 +74,6 @@ const deployAction = async (contract) => {
 }
 
 const resetAction = async (contract) => {
-  if (contract == "history") {
-    console.log("history can't be reset, skipping...")
-    console.log("TODO: Add reset action for history that resets all tables")
-    return
-  }
 
   if (!isLocal()) {
     console.log("Don't reset contracts on testnet or mainnet!")
@@ -139,66 +133,6 @@ const initAction = async (compile = true) => {
 
 const updatePermissionAction = async () => {
   await updatePermissions()
-}
-
-const updateSettingsAction = async () => {
-  console.log(`UPDATE Settings on ${settings}`)
-  const name = "settings"
-  
-  const contract = await eos.contract(settings)
-
-  console.log(`reset settings`)
-
-  await contract.reset({ authorization: `${settings}@active` })
-
-  if (isTestnet) {
-    timeSeconds = 300
-    console.log("ON TESTNET - setting citizen min account age to "+timeSeconds+" seconds")
-   // ACTION configure(name param, uint64_t value);
-    await contract.configure("cit.age", 300, { authorization: `${settings}@active` })
-
-  }
-
-  console.log(`Success: Settings reset: ${settings}`)
-}
-
-const updateSchedulerAction = async () => {
-  console.log(`UPDATE Scheduler on ${scheduler}`)
-
-  const contract = await eos.contract(scheduler)
-
-  console.log(`${scheduler} stop`)
-  await contract.stop({ authorization: `${scheduler}@active` })
-
-  //console.log(`${scheduler} updateops`)
-  //await contract.updateops({ authorization: `${scheduler}@active` })
-
-  console.log(`${scheduler} start`)
-  await contract.start({ authorization: `${scheduler}@active` })
-
-  console.log(`Success: Scheduler was updated and restarted: ${scheduler}`)
-}
-
-const pauseOpAction = async (opname) => {
-  console.log(`Pause op ${opname}`)
-  const name = "scheduler"
-
-  const contract = await eos.contract(scheduler)
-
-  await contract.pauseop(opname, 1, { authorization: `${scheduler}@active` })
-
-  console.log(`Success: Operatioon paused: ${opname}`)
-}
-
-const unpauseOpAction = async (opname) => {
-  console.log(`Unpause op ${opname}`)
-  const name = "scheduler"
-
-  const contract = await eos.contract(scheduler)
-
-  await contract.pauseop(opname, 0, { authorization: `${scheduler}@active` })
-
-  console.log(`Success: Operatioon unpaused: ${opname}`)
 }
 
 program
