@@ -39,13 +39,34 @@ cp .env.example .env
 
 The COMPILER variable can either be docker or local - if you have eos-cpp installed on your local machine you can use local, if you want to use a docker container make sure docker is running and it'll do everything for you.
 
+Use COMPILER=local if using https://github.com/AntelopeIO/DUNES for local unit tests
+
 ### Tools Setup
 
 ```
 npm install
 ```
 
-### Start single-node local test network
+### Start local test network with DUNES
+
+```
+get DUNES from https://github.com/AntelopeIO/DUNES and follow install process in README
+upgrade nodejs https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
+dune --start mynode
+dune --bootstrap-system
+dune --create-account owner eosio EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+```
+
+When using the `seeds.js` test script (see below) in the DUNES container, use this convention
+```
+dune -- /host`pwd`/scripts/seeds.js init
+```
+instead of
+```
+./scripts/seeds.js init
+```
+
+### Start single-node local test network (alternative without DUNES)
 
 The local testnet is required for unit tests.
 

@@ -22,7 +22,7 @@ const networkDisplayName = {
 }
 
 const endpoints = {
-  local: 'http://127.0.0.1:8888',
+  local: process.env.LOCAL_ENDPOINT,
   telosTestnet: 'https://api-test.telosfoundation.io',
   telosMainnet: 'https://api.telosfoundation.io',
   eosMainnet: 'http://eos.greymass.com',
@@ -156,20 +156,22 @@ const accountsMetadata = (network) => {
       fourthuser: account('seedsuserxxx', '10000000.0000 SEEDS'),
       fifthuser: account('seedsuseryyy', '10000000.0000 SEEDS'),
       sixthuser: account('seedsuserzzz', '5000.0000 SEEDS'),
-      constitutionalGuardians: account('cg.seeds', '1.0000 SEEDS'),
-      orguser: account('org1', '100.0000 SEEDS'),
-      hyphabank: account('seeds.hypha', '100.0000 SEEDS'),
+      //constitutionalGuardians: account('cg.seeds', '1.0000 SEEDS'),
+      //orguser: account('org1', '100.0000 SEEDS'),
+      //hyphabank: account('seeds.hypha', '100.0000 SEEDS'),
       
 
       // on main net first bank has 525000000 seeds but we use 25M above for our test accounts
-      campaignbank: account('gift.seeds',  '500000000.0000 SEEDS'),
-      milestonebank: account('milest.seeds', '75000000.0000 SEEDS'),
-      thirdbank: account('hypha.seeds',  '300000000.0000 SEEDS'),
-      alliancesbank: account('allies.seeds','180000000.0000 SEEDS'),
-      ambassadorsandreferralsbank: account('refer.seeds',  '120000000.0000 SEEDS'),
-      sixthbank: account('bank.seeds',   '300000000.0000 SEEDS'),
-      bank: account('system.seeds'),
-      globaldho: account('gdho.seeds'),
+      //campaignbank: account('gift.seeds',  '500000000.0000 SEEDS'),
+      //milestonebank: account('milest.seeds', '75000000.0000 SEEDS'),
+      //thirdbank: account('hypha.seeds',  '300000000.0000 SEEDS'),
+      //alliancesbank: account('allies.seeds','180000000.0000 SEEDS'),
+      //ambassadorsandreferralsbank: account('refer.seeds',  '120000000.0000 SEEDS'),
+      //sixthbank: account('bank.seeds',   '300000000.0000 SEEDS'),
+      //bank: account('system.seeds'),
+      //globaldho: account('gdho.seeds'),
+      token: token('token.seeds', owner, '1500000000.0000 SEEDS'),
+      testtoken: token('token.seeds', owner, '1500000000.0000 TESTS'),
       tokensmaster: contract('tmastr.seeds', 'tokensmaster'),
       rainbows: contract('rainbo.seeds','rainbows'),
     }

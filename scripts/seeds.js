@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+const path = require('path');
+// find project dir in DUNE docker container
+const calledAs = process.argv[1]
+const projdir = path.parse(calledAs).dir.slice(0,-8) // trim "/scripts" off end
+process.chdir(projdir);
+
 const test = require('./test')
 const program = require('commander')
 const compile = require('./compile')

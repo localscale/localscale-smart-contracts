@@ -13,6 +13,7 @@ describe('Master token list', async assert => {
 
   console.log('installed at '+tokensmaster)
   const contract = await eos.contract(tokensmaster)
+  console.log(`token ${token}`)
   const thetoken = await eos.contract(token)
 
   console.log('--Normal operations--')
