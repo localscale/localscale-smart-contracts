@@ -17,37 +17,6 @@ function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// TODO: We need to only use nonce in testnet, not in mainnet. Mainnet its causing 
-// errors, and we don't need it. It's only for unit tests. 
-async function getNonce () {
-  try {
-    if (isUnitTest) {
-      await rpc.getRawAbi('policy.seeds')
-      const random = Math.random().toString(36).substring(4);
-      return [{
-        // this is a nonce action - prevents duplicate transaction errors - we borrow policy.seeds for this
-        account:"policy.seeds",
-        name:"create",
-        authorization: [
-          {
-            actor: 'policy.seeds',
-            permission: 'active'
-          }
-        ],
-        data:{
-          account:"policy.seeds",
-          backend_user_id: random,
-          device_id: random,
-          signature: "",
-          policy: "CREATED BY UNIT TEST"
-        }
-      }]
-    }
-    return []
-  } catch (err) {
-    return []
-  }
-}
 
 class Eos {
 
@@ -112,7 +81,6 @@ class Eos {
           data[name] = arguments[i]
         }
 
-        const nonce = await getNonce() 
         const actions = [
           {
           account: accountName,
@@ -120,12 +88,12 @@ class Eos {
           authorization: auth,
             data
           },
-          ...nonce
         ]
 
+        // vary expiry time to avoid spurious 'duplicate transaction' errors
         const trxConfig = {
           blocksBehind: 3,
-          expireSeconds: 30,
+          expireSeconds: isUnitTest ? 5 + Math.floor(100 * Math.random()) : 30
         }
 
         let res

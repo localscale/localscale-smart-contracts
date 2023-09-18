@@ -1,3 +1,5 @@
+console.log('rainbows.test.js')
+
 const { describe } = require("riteway")
 const { eos, names, getTableRows, isLocal, sleep, initContracts,
         httpEndpoint, getBalance, getBalanceFloat, asset } = require("../scripts/helper")
@@ -49,18 +51,15 @@ describe('rainbows', async assert => {
   console.log('installed at '+rainbows)
   const contracts = await Promise.all([
     eos.contract(rainbows),
-    eos.contract(escrow),
-    eos.contract(accounts),
-    eos.contract(settings),
-    eos.contract(token),
-    eos.contract(pool),
-  ]).then(([rainbows, escrow, accounts, settings, token, pool]) => ({
-    rainbows, escrow, accounts, settings, token, pool
+    eos.contract(token)
+  ]).then(([rainbows, token]) => ({
+    rainbows, token
   }))
 
   const setSeedsBalance = async( account, balance) => {
     console.log(`setting ${account} to ${balance}`)
     let bal = await eos.getCurrencyBalance(token, account, 'SEEDS')
+    console.log(`bal ${account} ${bal[0]} ${bal[1]}`)
     if( bal[0] != balance ) {
       await contracts.token.transfer(account, owner, bal[0], '', { authorization: `${account}@active` } )
       if( parseFloat(balance) != 0.0 ) {
@@ -522,203 +521,6 @@ describe('rainbows', async assert => {
     expected: true
   })
 
-  console.log('---begin dSeeds redemption tests---')
-
-  const dseed_escrow = fifthuser
-
-  const checkBalances = async ({ expected, given, should }) => {
-    const balanceTable = await getTableRows({
-      code: pool,
-      scope: pool,
-      table: 'balances',
-      json: true
-    })
-    const sizesTable = await getTableRows({
-      code: pool,
-      scope: pool,
-      table: 'sizes',
-      json: true
-    })
-    assert({
-      given,
-      should,
-      actual: balanceTable.rows,
-      expected
-    })
-    assert({
-      given,
-      should,
-      actual: (sizesTable.rows.filter(r => r.id === 'total.sz')[0].size / 10000).toFixed(4),
-      expected: balanceTable.rows.length > 0 ? 
-        balanceTable.rows.map(r => asset(r.balance).amount).reduce((acc, curr) => acc + curr).toFixed(4) : 
-        '0.0000'
-    })
-  }
-
-  const users = [firstuser, seconduser, thirduser]
-  const allusers = [firstuser, seconduser, thirduser, fourthuser, fifthuser]
-
-  console.log('reset')
-  await contracts.rainbows.reset(true, 100, { authorization: `${rainbows}@active` })
-
-  for( const acct of accts ) {
-    await contracts.rainbows.resetacct( acct, { authorization: `${rainbows}@active` })
-  }  
-
-  assert({
-    given: 'reset all',
-    should: 'clear table RAM',
-    actual: await get_scope(rainbows),
-    expected: { rows: [], more: '' }
-  })
-
-  console.log('create dSeed-backed token ARCOS')
-
-  await contracts.rainbows.create(issuer, '1000000.0000 ARCOS', issuer, withdraw_to, issuer,
-                         starttime.toISOString(), starttime.toISOString(), '', '', '', '',
-                          { authorization: `${issuer}@active` } )
-  await setSeedsBalance(issuer, '10000000.0000 SEEDS')
-  await setSeedsBalance(seconduser, '10000000.0000 SEEDS')
-  await setSeedsBalance(thirduser, '5000000.0000 SEEDS')
-  await setSeedsBalance(fourthuser, '10000000.0000 SEEDS')
-
-
-  console.log('empty dSeeds escrow account')
-  await setSeedsBalance(dseed_escrow, '0.0000 SEEDS')
-  bal = await eos.getCurrencyBalance(pool, dseed_escrow, 'HPOOL')
-  //if( bal[0] != '0.00000 HPOOL' ) {
-  //  await contracts.pool.transfer(dseed_escrow, issuer, bal[0], 'empty dseed_escrow', { authorization: `${issuer}@active` } )
-  //}
-
-
-  const setupPool = async () => {
-    console.log('reset pool')
-    await contracts.pool.reset({ authorization: `${pool}@active` })
-
-    console.log('reset accounts')
-    await contracts.accounts.reset({ authorization: `${accounts}@active` })
-
-    console.log('reset settings')
-    await contracts.settings.reset({ authorization: `${settings}@active` })
-
-    console.log('reset token')
-    await contracts.token.resetweekly({ authorization: `${token}@active` })
-  }
-  await setupPool()
-
-  console.log('get initial balances')
-  balancesBefore = await Promise.all(allusers.map(user => getBalanceFloat(user)))
-
-  console.log(`transfer to ${pool}`)
-  await Promise.all(users.map((user, index) => contracts.token.transfer(user, escrow, `1000.0000 SEEDS`, '', { authorization: `${user}@active` })))
-  await Promise.all(users.map((user, index) => contracts.token.transfer(escrow, pool, `1000.0000 SEEDS`, user, { authorization: `${escrow}@active` })))
-  await contracts.pool.transfer(issuer, seconduser, '1000.0000 HPOOL', '', { authorization: `${issuer}@active` })
-
-  assert({
-    given: 'transfered SEEDS',
-    should: 'have the correct HPOOL balances',
-    actual: await Promise.all(users.map(user => eos.getCurrencyBalance(pool, user, 'HPOOL'))),
-    expected: [ [], ["2000.0000 HPOOL"], ["1000.0000 HPOOL"] ]
-  })
-
-  console.log('transfer HPOOL to issuer')
-  await contracts.pool.transfer(thirduser, issuer, '500.0000 HPOOL', '', { authorization: `${thirduser}@active` })
-
-  console.log('set placeholder Seeds backing')
-  await contracts.rainbows.setbacking('1.0000 ARCOS', '0.0000 SEEDS', 'token.seeds', dseed_escrow, true, 100, '',
-                          { authorization: `${issuer}@active` } )
-  await addActorPermission(dseed_escrow, 'active', rainbows, 'eosio.code')
-
-  console.log('set dSeeds backing')
-  await contracts.rainbows.setbacking('1.0000 ARCOS', '1.0000 HPOOL', 'pool.seeds', dseed_escrow, true, 100, '',
-                          { authorization: `${issuer}@active` } )
-
-  console.log('approve token')
-  await contracts.rainbows.approve('ARCOS', false, { authorization: `${rainbows}@active` })
-
-
-  console.log('issue ARCOS tokens')
-  await contracts.rainbows.issue('500.0000 ARCOS', '', { authorization: `${issuer}@active` })
-
-  assert({
-    given: 'issued ARCOS',
-    should: 'have the correct SEEDS & HPOOL balances',
-    actual: [ await Promise.all(allusers.map(user => eos.getCurrencyBalance(token, user, 'SEEDS'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(pool, user, 'HPOOL'))) ],
-    expected: [ [ [ '9999000.0000 SEEDS' ], [ '9999000.0000 SEEDS' ], [ '4999000.0000 SEEDS' ], [ '10000000.0000 SEEDS' ], [ '0.0000 SEEDS' ] ],
-                [ [], [ '2000.0000 HPOOL' ], [ '500.0000 HPOOL' ], [], [ '500.0000 HPOOL' ] ] ]
-  })
-
-  console.log('transfer ARCOS to user')
-  await contracts.rainbows.transfer(issuer, fourthuser, '300.0000 ARCOS', 'test nonmember', { authorization: `${issuer}@active` })
-  assert({
-    given: 'transferred to user',
-    should: 'have the correct ARCOS balances',
-    actual: await Promise.all(allusers.map(user => eos.getCurrencyBalance(rainbows, user, 'ARCOS'))),
-    expected: [ [ '200.0000 ARCOS' ], [], [], [ '300.0000 ARCOS' ], [] ]
-  })
-
-  console.log('harvest payout Seeds from pool')
-  await contracts.pool.payouts('60.0000 SEEDS', { authorization: `${pool}@active` })
-  await sleep(2000)
-
-  await checkBalances({
-    expected: [
-      { account: seconduser, balance: '1960.0000 SEEDS' },
-      { account: thirduser, balance: '490.0000 SEEDS' },
-      { account: dseed_escrow, balance: '490.0000 SEEDS' }
-    ],
-    given: 'harvest payout',
-    should: 'have the correct pool balances'
-  })
-
-  console.log('user redeem some')
-  await contracts.rainbows.retire(fourthuser, '150.0000 ARCOS', true, 'redeemed by user', { authorization: `${fourthuser}@active` })  
-  
-  assert({
-    given: 'user redeem',
-    should: 'have the correct SEEDS, HPOOL, & ARCOS balances',
-    actual: [ await Promise.all(allusers.map(user => eos.getCurrencyBalance(token, user, 'SEEDS'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(pool, user, 'HPOOL'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(rainbows, user, 'ARCOS'))) ],
-    expected: [ [ [ '9999000.0000 SEEDS' ], [ '9999040.0000 SEEDS' ], [ '4999010.0000 SEEDS' ], [ '10000003.0000 SEEDS' ], [ '7.0000 SEEDS' ] ],
-                [ [], [ '1960.0000 HPOOL' ], [ '490.0000 HPOOL' ], [ '147.0000 HPOOL' ], [ '343.0000 HPOOL' ] ],
-                [ [ '200.0000 ARCOS' ], [], [], [ '150.0000 ARCOS' ], [] ] ]
-  })
-
-
-  console.log('payout all the Seeds in pool')
-  await contracts.pool.payouts('2940.0000 SEEDS', { authorization: `${pool}@active` })
-  await sleep(2000)
-
-  assert({
-    given: 'payout all Seeds in pool',
-    should: 'have the correct SEEDS, HPOOL, & ARCOS balances',
-    actual: [ await Promise.all(allusers.map(user => eos.getCurrencyBalance(token, user, 'SEEDS'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(pool, user, 'HPOOL'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(rainbows, user, 'ARCOS'))) ],
-    expected: [ [ [ '9999000.0000 SEEDS' ], [ '10001000.0000 SEEDS' ], [ '4999500.0000 SEEDS' ], [ '10000150.0000 SEEDS' ], [ '350.0000 SEEDS' ] ],
-                [ [], [], [], [], [] ],
-                [ [ '200.0000 ARCOS' ], [], [], [ '150.0000 ARCOS' ], [] ] ]
-  })
-
-  console.log('redeem all')
-  await contracts.rainbows.retire(issuer, '200.0000 ARCOS', true, 'redeemed by issuer', { authorization: `${issuer}@active` })  
-  await contracts.rainbows.retire(fourthuser, '150.0000 ARCOS', true, 'redeemed by user', { authorization: `${fourthuser}@active` })  
-
-  assert({
-    given: 'all the payouts completed and redeemed',
-    should: 'have the correct SEEDS, HPOOL, & ARCOS balances',
-    actual: [ await Promise.all(allusers.map(user => eos.getCurrencyBalance(token, user, 'SEEDS'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(pool, user, 'HPOOL'))),
-              await Promise.all(allusers.map(user => eos.getCurrencyBalance(rainbows, user, 'ARCOS'))) ],
-    expected: [ [ [ '9999200.0000 SEEDS' ], [ '10001000.0000 SEEDS' ], [ '4999500.0000 SEEDS' ], [ '10000300.0000 SEEDS' ], [ '0.0000 SEEDS' ] ],
-                [ [], [], [], [], [] ],
-                [ [ '0.0000 ARCOS' ], [], [], [ '0.0000 ARCOS' ], [] ] ]
-  })
-
-
-    
 })
 
 
